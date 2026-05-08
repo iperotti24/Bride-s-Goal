@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PesoQuest 💍</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold:#C9A84C; --gold-light:#E8C97A; --gold-pale:rgba(201,168,76,0.12);
+  --dark:#140F06; --dark2:#1E1609; --dark3:#251C0C;
+  --cream:#FDF6E3;
+  --green:#52B788; --green-pale:rgba(82,183,136,0.12);
+  --red:#E07070; --red-pale:rgba(224,112,112,0.12);
+  --blue:#6BA3D6;
+  --card:rgba(255,255,255,0.04); --border:rgba(201,168,76,0.2);
+  --text-dim:rgba(253,246,227,0.45);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--dark);color:var(--cream);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 15% 10%,rgba(201,168,76,0.07) 0%,transparent 70%),radial-gradient(ellipse 50% 60% at 85% 90%,rgba(201,168,76,0.05) 0%,transparent 70%);pointer-events:none;z-index:0}
+.app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding-bottom:130px}
+
+/* TAB BAR */
+.tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(20,15,6,0.97);backdrop-filter:blur(20px);border-top:1px solid var(–border);display:grid;grid-template-columns:repeat(4,1fr);z-index:100;padding:8px 0 max(8px,env(safe-area-inset-bottom))}
+.tab-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(–text-dim);font-family:‘DM Sans’,sans-serif;font-size:0.6rem;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;padding:6px 4px;transition:color 0.2s}
+.tab-btn.active{color:var(–gold-light)}
+.tab-btn svg{width:22px;height:22px;stroke-width:1.5}
+
+/* SCREENS */
+.screen{display:none;animation:fadeIn 0.3s ease}
+.screen.active{display:block}
+
+/* HEADER */
+.header{padding:44px 20px 16px;display:flex;align-items:flex-start;justify-content:space-between}
+.header-left h1{font-family:‘Playfair Display’,serif;font-size:1.7rem;font-weight:900;line-height:1.1;background:linear-gradient(135deg,var(–gold-light),var(–gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header-left p{font-size:0.75rem;color:var(–text-dim);margin-top:3px}
+.header-badge{background:var(–gold-pale);border:1px solid var(–border);border-radius:10px;padding:8px 12px;text-align:center}
+.header-badge .num{font-family:‘Playfair Display’,serif;font-size:1.5rem;font-weight:700;color:var(–gold-light);line-height:1}
+.header-badge .lbl{font-size:0.6rem;color:var(–text-dim);text-transform:uppercase;letter-spacing:0.1em}
+
+/* COUNTDOWN */
+.cd-card{margin:0 16px 14px;background:linear-gradient(135deg,rgba(201,168,76,0.12),rgba(201,168,76,0.04));border:1px solid var(–border);border-radius:18px;padding:18px 20px}
+.cd-title{font-size:0.7rem;color:var(–gold-light);text-transform:uppercase;letter-spacing:0.12em;display:flex;align-items:center;gap:6px;margin-bottom:14px}
+.cd-title::after{content:’’;flex:1;height:1px;background:var(–border)}
+.cd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cd-item{background:rgba(201,168,76,0.08);border-radius:10px;padding:10px 6px;text-align:center}
+.cd-num{font-family:‘Playfair Display’,serif;font-size:1.7rem;font-weight:700;color:var(–gold-light);line-height:1}
+.cd-sub{font-size:0.58rem;color:var(–text-dim);text-transform:uppercase;letter-spacing:0.08em;margin-top:3px}
+.cd-note{font-size:0.72rem;color:var(–text-dim);text-align:center;margin-top:12px}
+.cd-note strong{color:var(–gold-light)}
+
+/* HERO CARD */
+.hero-card{margin:0 16px 14px;background:var(–card);border:1px solid var(–border);border-radius:18px;padding:20px}
+.level-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.level-badge{background:linear-gradient(135deg,var(–gold),var(–gold-light));color:var(–dark);font-weight:700;font-size:0.72rem;padding:4px 12px;border-radius:20px;letter-spacing:0.04em}
+.xp-info{font-size:0.72rem;color:var(–text-dim)}
+.xp-track{background:rgba(255,255,255,0.07);border-radius:6px;height:6px;overflow:hidden;margin-bottom:18px}
+.xp-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(–gold),var(–gold-light));width:0%;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat-box{background:rgba(255,255,255,0.04);border-radius:12px;padding:12px 8px;text-align:center}
+.stat-box.accent{background:var(–gold-pale);border:1px solid rgba(201,168,76,0.3)}
+.stat-val{font-family:‘Playfair Display’,serif;font-size:1.35rem;font-weight:700;line-height:1}
+.stat-val.green{color:var(–green)}
+.stat-val.gold{color:var(–gold-light)}
+.stat-label{font-size:0.6rem;color:var(–text-dim);text-transform:uppercase;letter-spacing:0.06em;margin-top:4px}
+
+/* WEIGHT PROGRESS */
+.wp-card{margin:0 16px 14px;background:var(–card);border:1px solid var(–border);border-radius:18px;padding:20px}
+.wp-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.wp-title{font-family:‘Playfair Display’,serif;font-size:1rem;font-weight:700}
+.wp-pct{font-size:0.75rem;color:var(–gold-light);font-weight:600}
+.wp-track{background:rgba(255,255,255,0.07);border-radius:8px;height:12px;overflow:hidden;margin-bottom:10px}
+.wp-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,var(–green),#7FD4A8);width:0%;transition:width 1.5s cubic-bezier(.4,0,.2,1)}
+.wp-milestones{display:flex;justify-content:space-between}
+.wp-ms{font-size:0.6rem;color:var(–text-dim);text-align:center}
+.wp-ms strong{display:block;color:var(–cream);font-size:0.68rem}
+
+/* STREAK */
+.streak-card{margin:0 16px 14px;background:var(–card);border:1px solid var(–border);border-radius:18px;padding:18px 20px}
+.streak-top{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.streak-flame{font-size:1.8rem}
+.streak-info h3{font-family:‘Playfair Display’,serif;font-size:1.1rem;font-weight:700}
+.streak-info p{font-size:0.72rem;color:var(–text-dim)}
+.streak-days{display:flex;gap:6px}
+.streak-day{width:36px;height:36px;border-radius:10px;font-size:0.68rem;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,0.05);color:var(–text-dim);gap:1px}
+.streak-day span:first-child{font-size:0.58rem;text-transform:uppercase}
+.streak-day.done{background:rgba(82,183,136,0.2);color:var(–green)}
+.streak-day.today{background:var(–gold-pale);color:var(–gold-light);border:1px solid var(–border)}
+
+/* MOTIVE */
+.motive-card{margin:0 16px 14px;background:linear-gradient(135deg,rgba(201,168,76,0.1),rgba(201,168,76,0.03));border:1px solid var(–border);border-radius:18px;padding:20px;text-align:center}
+.motive-card blockquote{font-family:‘Playfair Display’,serif;font-style:italic;font-size:1rem;line-height:1.5;color:var(–gold-light);margin-bottom:8px}
+.motive-card cite{font-size:0.7rem;color:var(–text-dim)}
+
+/* SECTION TITLE */
+.section-title{font-size:0.68rem;color:var(–text-dim);text-transform:uppercase;letter-spacing:0.12em;padding:0 20px 10px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:’’;flex:1;height:1px;background:var(–border)}
+
+/* MISSIONS */
+.missions-list{padding:0 16px;display:flex;flex-direction:column;gap:10px;margin-bottom:4px}
+.mission-card{background:var(–card);border:1px solid var(–border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden}
+.mission-card::before{content:’’;position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+.mission-card.food::before{background:var(–gold)}
+.mission-card.exercise::before{background:var(–green)}
+.mission-card.habit::before{background:var(–blue)}
+.mission-card.done{opacity:0.5}
+.mission-card.done .mission-check{background:var(–green);border-color:var(–green)}
+.mission-icon{font-size:1.6rem;flex-shrink:0}
+.mission-body{flex:1}
+.mission-name{font-size:0.88rem;font-weight:500;margin-bottom:3px}
+.mission-desc{font-size:0.72rem;color:var(–text-dim)}
+.mission-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.mission-xp{background:var(–gold-pale);border:1px solid rgba(201,168,76,0.25);border-radius:20px;font-size:0.65rem;color:var(–gold-light);font-weight:600;padding:2px 8px;white-space:nowrap}
+.mission-check{width:22px;height:22px;border-radius:50%;border:2px solid var(–border);background:transparent;display:flex;align-items:center;justify-content:center;transition:all 0.3s;flex-shrink:0}
+.mission-check svg{width:12px;height:12px;stroke:#fff;stroke-width:2.5;display:none}
+.mission-card.done .mission-check svg{display:block}
+
+/* FOOD */
+.food-section{padding:0 16px;display:flex;flex-direction:column;gap:12px}
+.food-card{background:var(–card);border:1px solid var(–border);border-radius:14px;padding:16px}
+.food-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.food-header h3{font-size:0.9rem;font-weight:600;flex:1}
+.food-badge{font-size:0.62rem;font-weight:600;padding:3px 8px;border-radius:20px}
+.food-badge.warn{background:var(–red-pale);color:var(–red);border:1px solid rgba(224,112,112,0.25)}
+.food-badge.ok{background:var(–green-pale);color:var(–green);border:1px solid rgba(82,183,136,0.25)}
+.food-tips{display:flex;flex-direction:column;gap:8px}
+.food-tip{display:flex;align-items:flex-start;gap:10px;background:rgba(255,255,255,0.03);border-radius:10px;padding:10px 12px}
+.tip-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.tip-text{font-size:0.78rem;line-height:1.4}
+.tip-text strong{color:var(–gold-light)}
+.log-entry{background:rgba(255,255,255,0.04);border:1px solid var(–border);border-radius:12px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+.log-entry-name{font-size:0.85rem;font-weight:500}
+.log-entry-time{font-size:0.7rem;color:var(–text-dim);margin-top:2px}
+.log-entry-score{font-size:0.72rem;font-weight:600;padding:3px 10px;border-radius:20px}
+.score-good{background:var(–green-pale);color:var(–green)}
+.score-bad{background:var(–red-pale);color:var(–red)}
+.log-input{width:100%;background:var(–card);border:1px solid var(–border);border-radius:12px;color:var(–cream);font-family:‘DM Sans’,sans-serif;font-size:0.9rem;padding:12px 14px;outline:none;transition:border-color 0.2s}
+.log-input:focus{border-color:var(–gold)}
+.add-btn{background:linear-gradient(135deg,var(–gold),var(–gold-light));color:var(–dark);font-family:‘DM Sans’,sans-serif;font-weight:700;font-size:0.85rem;border:none;border-radius:12px;padding:12px 18px;cursor:pointer;white-space:nowrap;transition:opacity 0.2s}
+.add-btn:active{opacity:0.8}
+
+/* REWARDS */
+.rewards-grid{padding:0 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.reward-card{background:var(–card);border:1px solid var(–border);border-radius:14px;padding:16px;text-align:center;position:relative;overflow:hidden}
+.reward-card.unlocked{border-color:var(–gold)}
+.reward-card.locked{opacity:0.6}
+.reward-icon{font-size:2.2rem;margin-bottom:8px}
+.reward-name{font-size:0.8rem;font-weight:600;margin-bottom:4px}
+.reward-desc{font-size:0.68rem;color:var(–text-dim);margin-bottom:10px;line-height:1.3}
+.reward-req{font-size:0.65rem;font-weight:600;padding:4px 10px;border-radius:20px;background:var(–gold-pale);color:var(–gold-light);border:1px solid rgba(201,168,76,0.3)}
+.reward-card.unlocked .reward-req{background:var(–green-pale);color:var(–green);border-color:rgba(82,183,136,0.3)}
+.unlock-ribbon{position:absolute;top:10px;right:-20px;background:var(–green);color:var(–dark);font-size:0.55rem;font-weight:700;padding:3px 22px;transform:rotate(30deg);letter-spacing:0.05em}
+
+/* TOAST */
+.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-80px);background:linear-gradient(135deg,var(–gold),var(–gold-light));color:var(–dark);font-weight:700;font-size:0.85rem;padding:12px 24px;border-radius:30px;z-index:999;transition:transform 0.4s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+
+</head>
+<body>
+<div class="app">
+
+<!-- ═══ HOME ═══ -->
+
+<div class="screen active" id="screen-home">
+  <div class="header">
+    <div class="header-left">
+      <h1>PesoQuest 💍</h1>
+      <p>Rumo ao altar — <span id="today-str"></span></p>
+    </div>
+    <div class="header-badge">
+      <div class="num" id="cd-mini">—</div>
+      <div class="lbl">dias</div>
+    </div>
+  </div>
+
+  <div class="cd-card">
+    <div class="cd-title">💍 Contagem regressiva — 02/04/2027</div>
+    <div class="cd-grid">
+      <div class="cd-item"><div class="cd-num" id="cd-m">—</div><div class="cd-sub">meses</div></div>
+      <div class="cd-item"><div class="cd-num" id="cd-w">—</div><div class="cd-sub">semanas</div></div>
+      <div class="cd-item"><div class="cd-num" id="cd-d">—</div><div class="cd-sub">dias</div></div>
+      <div class="cd-item"><div class="cd-num">15</div><div class="cd-sub">kg meta</div></div>
+    </div>
+    <div class="cd-note">🎯 Meta: chegar em <strong>64 kg</strong> no altar</div>
+  </div>
+
+  <div class="hero-card">
+    <div class="level-row">
+      <div class="level-badge" id="level-badge">⚔️ Guerreiro</div>
+      <div class="xp-info" id="xp-txt">0 / 300 XP</div>
+    </div>
+    <div class="xp-track"><div class="xp-fill" id="xp-bar"></div></div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-val" id="current-weight">79<span style="font-size:.7rem;color:var(--text-dim)">kg</span></div><div class="stat-label">Peso atual</div></div>
+      <div class="stat-box accent"><div class="stat-val gold" id="lost-display">0<span style="font-size:.7rem">kg</span></div><div class="stat-label">Perdidos</div></div>
+      <div class="stat-box"><div class="stat-val green" id="remaining-display">15</div><div class="stat-label">kg restantes</div></div>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:8px;align-items:center">
+      <input class="log-input" id="weight-input" type="number" step="0.1" placeholder="Atualizar peso (ex: 78.5)" style="flex:1;padding:10px 14px;font-size:0.85rem">
+      <button class="add-btn" onclick="updateWeight()" style="padding:10px 14px;font-size:0.8rem">Salvar</button>
+    </div>
+  </div>
+
+  <div class="wp-card">
+    <div class="wp-head">
+      <div class="wp-title">Jornada: 79 → 64 kg</div>
+      <div class="wp-pct" id="wp-pct">0%</div>
+    </div>
+    <div class="wp-track"><div class="wp-fill" id="wp-bar"></div></div>
+    <div class="wp-milestones">
+      <div class="wp-ms"><strong>79kg</strong>Início</div>
+      <div class="wp-ms"><strong>75kg</strong>Marco 1</div>
+      <div class="wp-ms"><strong>70kg</strong>Marco 2</div>
+      <div class="wp-ms"><strong>64kg</strong>🎯 Altar</div>
+    </div>
+  </div>
+
+  <!-- GRÁFICO DE PESO -->
+
+  <div class="wp-card" style="padding-bottom:16px">
+    <div class="wp-head">
+      <div class="wp-title">📈 Evolução do peso</div>
+      <div class="wp-pct" id="chart-points-count">0 registros</div>
+    </div>
+    <canvas id="weight-chart" height="160" style="width:100%;display:block;margin-top:4px"></canvas>
+    <div style="text-align:center;margin-top:10px;font-size:0.68rem;color:var(--text-dim)">Registre seu peso acima para ver o gráfico crescer 📊</div>
+  </div>
+
+  <div class="streak-card">
+    <div class="streak-top">
+      <div class="streak-flame">🔥</div>
+      <div class="streak-info">
+        <h3>Sequência: <span id="streak-count">0 dias</span></h3>
+        <p>Não quebre agora! Cada dia conta.</p>
+      </div>
+    </div>
+    <div class="streak-days" id="streak-days"></div>
+  </div>
+
+  <div class="motive-card">
+    <blockquote>"Você já provou que consegue — perdeu 6kg no Afine-se. Agora é para o maior dia da sua vida. O vestido/terno te espera."</blockquote>
+    <cite>— PesoQuest 💍</cite>
+  </div>
+</div>
+
+<!-- ═══ MISSÕES ═══ -->
+
+<div class="screen" id="screen-missions">
+  <div class="header">
+    <div class="header-left"><h1>Missões</h1><p>Complete hoje para ganhar XP</p></div>
+  </div>
+
+  <div class="section-title">🍽️ Alimentação — seu foco principal</div>
+  <div class="missions-list">
+    <div class="mission-card food" data-id="prato" onclick="toggleMission(this,120)">
+      <div class="mission-icon">🥗</div>
+      <div class="mission-body"><div class="mission-name">Prato colorido no almoço</div><div class="mission-desc">50% legumes, 25% proteína, 25% carbo</div></div>
+      <div class="mission-right"><div class="mission-xp">+120 XP</div><div class="mission-check"><svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+    </div>
+    <div class="mission-card food" data-id="agua" onclick="toggleMission(this,80)">
+      <div class="mission-icon">💧</div>
+      <div class="mission-body"><div class="mission-name">Beber 2L de água</div><div class="mission-desc">Hidratação acelera o metabolismo</div></div>
+      <div class="mission-right"><div class="mission-xp">+80 XP</div><div class="mission-check"><svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+    </div>
+    <div class="mission-card food" data-id="ultra" onclick="toggleMission(this,100)">
+      <div class="mission-icon">🚫</div>
+      <div class="mission-body"><div class="mission-name">Zero ultraprocessados</div><div class="mission-desc">Sem biscoito, salgadinho ou fast-food</div></div>
+      <div class="mission-right"><div class="mission-xp">+100 XP</div><div class="mission-check"><svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+    </div>
+    <div class="mission-card food" data-id="lanche" onclick="toggleMission(this,60)">
+      <div class="mission-icon">🥜</div>
+      <div class="mission-body"><div class="mission-name">Lanche saudável</div><div class="mission-desc">Frutas, castanhas ou iogurte natural</div></div>
+      <div class="mission-right"><div class="mission-xp">+60 XP</div><div class="mission-check"><svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+    </div>
+    <div class="mission-card food" data-id="devagar" onclick="toggleMission(this,70)">
+      <div class="mission-icon">🍽️</div>
+      <div class="mission-body"><div class="mission-name">Comer devagar (20 min)</div><div class="mission-desc">Mastigar bem = menos compulsão</div></div>
+      <div class="mission-right"><div class="mission-xp">+70 XP</div><div class="mission-check"><svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:20px">🏋️ Exercício — já é seu hábito</div>
+  <div class="missions-list">
+    <div class="mission-card exercise" data-id="treino" onclick="toggleMission(this,150)">
+      <div class="mission-icon">🏋️</div>
+      <div class="mission-body"><div class="mission-name">Treino com personal</div><div class="mission-desc">Registre o treino de hoje ✓</div></div>
+      <div class="mission-right"><div class="mission-xp">+150 XP</div><div class="mission-check"><svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+    </div>
+    <div class="mission-card exercise" data-id="caminhada" onclick="toggleMission(this,80)">
+      <div class="mission-icon">🚶</div>
+      <div class="mission-body"><div class="mission-name">10 min de caminhada extra</div><div class="mission-desc">Nos dias sem treino, mova o corpo</div></div>
+      <div class="mission-right"><div class="mission-xp">+80 XP</div><div class="mission-check"><svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:20px">🌙 Hábitos — o diferencial</div>
+  <div class="missions-list">
+    <div class="mission-card habit" data-id="sono" onclick="toggleMission(this,90)">
+      <div class="mission-icon">😴</div>
+      <div class="mission-body"><div class="mission-name">Dormir 7–8h</div><div class="mission-desc">Sono ruim = mais fome e gordura</div></div>
+      <div class="mission-right"><div class="mission-xp">+90 XP</div><div class="mission-check"><svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+    </div>
+    <div class="mission-card habit" data-id="diario" onclick="toggleMission(this,50)">
+      <div class="mission-icon">📓</div>
+      <div class="mission-body"><div class="mission-name">Registrar o que comeu</div><div class="mission-desc">Consciência alimentar é o 1º passo</div></div>
+      <div class="mission-right"><div class="mission-xp">+50 XP</div><div class="mission-check"><svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+    </div>
+    <div class="mission-card habit" data-id="respira" onclick="toggleMission(this,60)">
+      <div class="mission-icon">🧘</div>
+      <div class="mission-body"><div class="mission-name">5 min de respiração/foco</div><div class="mission-desc">Estresse → compulsão alimentar</div></div>
+      <div class="mission-right"><div class="mission-xp">+60 XP</div><div class="mission-check"><svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ALIMENTAÇÃO ═══ -->
+
+<div class="screen" id="screen-food">
+  <div class="header">
+    <div class="header-left"><h1>Alimentação</h1><p>Seu maior desafio — vamos vencer juntos</p></div>
+  </div>
+
+  <div class="food-section">
+    <div class="food-card">
+      <div class="food-header">
+        <div style="font-size:1.4rem">⚠️</div>
+        <h3>Por que você trava nos 79kg</h3>
+        <div class="food-badge warn">Diagnóstico</div>
+      </div>
+      <div class="food-tips">
+        <div class="food-tip"><div class="tip-icon">🔄</div><div class="tip-text">Você treina bem, mas <strong>a alimentação apaga o déficit</strong>. 1h de treino = ~400 kcal. Um lanche ruim já cancela.</div></div>
+        <div class="food-tip"><div class="tip-icon">🧠</div><div class="tip-text">O padrão "treinei, mereço comer" é real. <strong>Treinar não dá licença para comer mal.</strong></div></div>
+        <div class="food-tip"><div class="tip-icon">📉</div><div class="tip-text">Você já perdeu 6kg antes — o corpo sabe como. <strong>O platô é comportamental, não fisiológico.</strong></div></div>
+      </div>
+    </div>
+
+```
+<div class="food-card">
+  <div class="food-header">
+    <div style="font-size:1.4rem">🎯</div>
+    <h3>Como sair dos 79kg de vez</h3>
+    <div class="food-badge ok">Para você</div>
+  </div>
+  <div class="food-tips">
+    <div class="food-tip"><div class="tip-icon">🍽️</div><div class="tip-text"><strong>Método do prato:</strong> ½ legumes, ¼ proteína magra, ¼ carbo. Simples, sem contar caloria.</div></div>
+    <div class="food-tip"><div class="tip-icon">📸</div><div class="tip-text"><strong>Fotografe o que vai comer.</strong> Tirar foto antes reduz em 30% o consumo impulsivo — cria pausa consciente.</div></div>
+    <div class="food-tip"><div class="tip-icon">🕐</div><div class="tip-text"><strong>Janela alimentar:</strong> tente não comer após as 20h. O horário importa tanto quanto o que você come.</div></div>
+    <div class="food-tip"><div class="tip-icon">🛒</div><div class="tip-text"><strong>Nunca vá ao mercado com fome.</strong> 90% das escolhas ruins acontecem na hora da compra.</div></div>
+    <div class="food-tip"><div class="tip-icon">💍</div><div class="tip-text"><strong>Visualização:</strong> quando bater vontade de comer mal, feche os olhos e pense no altar em 02/04/2027.</div></div>
+  </div>
+</div>
+
+<div class="food-card">
+  <div class="food-header">
+    <div style="font-size:1.4rem">📋</div>
+    <h3>Diário de hoje</h3>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px" id="food-log">
+    <div class="log-entry"><div><div class="log-entry-name">Café — Ovos mexidos + banana</div><div class="log-entry-time">07:30 · exemplo</div></div><div class="log-entry-score score-good">✓ Ótimo</div></div>
+    <div class="log-entry"><div><div class="log-entry-name">Lanche — Biscoito recheado 😬</div><div class="log-entry-time">10:15 · exemplo</div></div><div class="log-entry-score score-bad">⚠ Cuidado</div></div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <input class="log-input" id="food-input" placeholder="O que você comeu agora?">
+    <button class="add-btn" onclick="addFood()">+ Add</button>
+  </div>
+</div>
+```
+
+  </div>
+</div>
+
+<!-- ═══ RECOMPENSAS ═══ -->
+
+<div class="screen" id="screen-rewards">
+  <div class="header">
+    <div class="header-left"><h1>Recompensas</h1><p>Conquistas pelo caminho ao altar</p></div>
+  </div>
+
+  <div class="rewards-grid">
+    <div class="reward-card unlocked" id="r-streak">
+      <div class="unlock-ribbon">✓ Ganho</div>
+      <div class="reward-icon">🔥</div>
+      <div class="reward-name">Primeiro Fogo</div>
+      <div class="reward-desc">3 dias seguidos de missões completas</div>
+      <div class="reward-req">✓ Desbloqueado</div>
+    </div>
+    <div class="reward-card locked" id="r-week">
+      <div class="reward-icon">💪</div>
+      <div class="reward-name">Semana Perfeita</div>
+      <div class="reward-desc">7 dias sem falhar nenhuma missão</div>
+      <div class="reward-req">7 dias seguidos</div>
+    </div>
+    <div class="reward-card locked" id="r-4kg">
+      <div class="reward-icon">⚖️</div>
+      <div class="reward-name">Primeiro Marco</div>
+      <div class="reward-desc">Chegar a 75 kg — primeiros 4 kg!</div>
+      <div class="reward-req">–4 kg (75 kg)</div>
+    </div>
+    <div class="reward-card locked" id="r-half">
+      <div class="reward-icon">🏅</div>
+      <div class="reward-name">Meio Caminho</div>
+      <div class="reward-desc">7,5 kg perdidos — metade da meta!</div>
+      <div class="reward-req">–7,5 kg (71,5 kg)</div>
+    </div>
+    <div class="reward-card locked" id="r-10kg">
+      <div class="reward-icon">🎽</div>
+      <div class="reward-name">Nova Roupa</div>
+      <div class="reward-desc">Merece comemorar com look novo!</div>
+      <div class="reward-req">–10 kg (69 kg)</div>
+    </div>
+    <div class="reward-card locked" id="r-13kg">
+      <div class="reward-icon">💆</div>
+      <div class="reward-name">Dia de Spa</div>
+      <div class="reward-desc">Relaxamento merecido antes do altar</div>
+      <div class="reward-req">–13 kg (66 kg)</div>
+    </div>
+    <div class="reward-card locked" id="r-final" style="grid-column:1/-1">
+      <div class="reward-icon">💍</div>
+      <div class="reward-name">No Altar — 64 kg</div>
+      <div class="reward-desc">A maior recompensa: o melhor dia da sua vida, na melhor versão de você. 02/04/2027.</div>
+      <div class="reward-req">Meta final — 15 kg perdidos</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<!-- TAB BAR -->
+
+<nav class="tab-bar">
+  <button class="tab-btn active" onclick="goTo('home',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Início
+  </button>
+  <button class="tab-btn" onclick="goTo('missions',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    Missões
+  </button>
+  <button class="tab-btn" onclick="goTo('food',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+    Comida
+  </button>
+  <button class="tab-btn" onclick="goTo('rewards',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+    Prêmios
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── HELPERS ──
+const today = () => new Date().toISOString().slice(0,10);
+const STORAGE_KEY = 'pesoquest_v1';
+
+function load(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch(e){ return {}; }
+}
+function save(data){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+
+// ── STATE ──
+let state = load();
+// Defaults
+if(!state.xp)          state.xp = 0;
+if(!state.weight)      state.weight = 79;
+if(!state.streakDays)  state.streakDays = [];
+if(!state.missions)    state.missions = {};
+if(!state.foodLog)     state.foodLog = {};
+if(!state.weightHistory) state.weightHistory = [{date:today(), kg:79}];
+save(state);
+
+// ── COUNTDOWN ──
+(function(){
+  const wedding = new Date('2027-04-02T12:00:00');
+  const now = new Date();
+  const diff = wedding - now;
+  const days = Math.max(0, Math.floor(diff/86400000));
+  document.getElementById('cd-m').textContent  = Math.floor(days/30.44);
+  document.getElementById('cd-w').textContent  = Math.floor(days/7);
+  document.getElementById('cd-d').textContent  = days;
+  document.getElementById('cd-mini').textContent = days;
+  const wd = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+  document.getElementById('today-str').textContent = wd[now.getDay()];
+})();
+
+// ── LEVELS ──
+const LEVELS = [
+  {min:0,    name:'🌱 Iniciante'},
+  {min:300,  name:'⚔️ Guerreiro'},
+  {min:700,  name:'🛡️ Campeão'},
+  {min:1200, name:'👑 Lendário'},
+  {min:2000, name:'💍 Noivo Perfeito'},
+];
+function getLevel(xp){
+  let lv = LEVELS[0];
+  for(const l of LEVELS) if(xp >= l.min) lv = l;
+  const idx = LEVELS.indexOf(lv);
+  const next = LEVELS[idx+1];
+  const pct = next ? Math.round(((xp - lv.min)/(next.min - lv.min))*100) : 100;
+  const nextXP = next ? next.min : lv.min;
+  return {name: lv.name, pct, nextXP};
+}
+
+// ── RENDER XP & WEIGHT ──
+function renderAll(){
+  const {name, pct, nextXP} = getLevel(state.xp);
+  document.getElementById('xp-bar').style.width = Math.min(pct,100)+'%';
+  document.getElementById('xp-txt').textContent  = state.xp+' / '+nextXP+' XP';
+  document.getElementById('level-badge').textContent = name;
+
+  const lost = +(79 - state.weight).toFixed(1);
+  const remaining = +(state.weight - 64).toFixed(1);
+  document.getElementById('lost-display').innerHTML = Math.max(0,lost)+'<span style="font-size:.7rem">kg</span>';
+  document.getElementById('remaining-display').textContent = Math.max(0,remaining);
+  document.getElementById('current-weight').innerHTML = state.weight+'<span style="font-size:.7rem;color:var(--text-dim)">kg</span>';
+
+  // weight progress bar (79→64 = 15kg)
+  const wpPct = Math.min(Math.max(Math.round((lost/15)*100),0),100);
+  document.getElementById('wp-bar').style.width = wpPct+'%';
+  document.getElementById('wp-pct').textContent = wpPct+'%';
+
+  renderStreak();
+  renderRewards();
+  renderChart();
+}
+
+// ── STREAK ──
+function renderStreak(){
+  const now = new Date();
+  const days = [];
+  for(let i=6;i>=0;i--){
+    const d = new Date(now); d.setDate(d.getDate()-i);
+    days.push(d.toISOString().slice(0,10));
+  }
+  const labels = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const container = document.getElementById('streak-days');
+  container.innerHTML='';
+
+  // count current streak
+  let streak=0;
+  const sortedDays = [...state.streakDays].sort();
+  for(let i=sortedDays.length-1;i>=0;i--){
+    const expected = new Date(now); expected.setDate(expected.getDate()-streak);
+    if(sortedDays[i]===expected.toISOString().slice(0,10)) streak++;
+    else break;
+  }
+  document.getElementById('streak-count').textContent = streak+' dia'+(streak!==1?'s':'');
+
+  days.forEach(dateStr=>{
+    const d = new Date(dateStr);
+    const isToday = dateStr===today();
+    const isDone = state.streakDays.includes(dateStr);
+    const div = document.createElement('div');
+    div.className = 'streak-day'+(isDone?' done':'')+(isToday?' today':'');
+    div.innerHTML = `<span>${labels[d.getDay()]}</span><span>${isDone?'✓':isToday?'★':'–'}</span>`;
+    container.appendChild(div);
+  });
+}
+
+// ── MISSIONS ──
+function missionKey(id){ return today()+'_'+id; }
+
+function initMissions(){
+  document.querySelectorAll('.mission-card[data-id]').forEach(card=>{
+    const key = missionKey(card.dataset.id);
+    if(state.missions[key]) card.classList.add('done');
+  });
+}
+
+function toggleMission(card, pts){
+  if(!card.dataset.id) return;
+  const key = missionKey(card.dataset.id);
+  const wasDone = card.classList.contains('done');
+
+  if(wasDone){
+    card.classList.remove('done');
+    delete state.missions[key];
+    state.xp = Math.max(0, state.xp - pts);
+    showToast('–'+pts+' XP removido');
+  } else {
+    card.classList.add('done');
+    state.missions[key] = true;
+    state.xp += pts;
+    showToast('+'+pts+' XP conquistado! 🎉');
+    card.style.transform='scale(0.97)';
+    setTimeout(()=>card.style.transform='',200);
+  }
+
+  // mark today as active day in streak if any mission done
+  const anyDone = Object.keys(state.missions).some(k=>k.startsWith(today()));
+  if(anyDone && !state.streakDays.includes(today())){
+    state.streakDays.push(today());
+  } else if(!anyDone){
+    state.streakDays = state.streakDays.filter(d=>d!==today());
+  }
+
+  save(state);
+  renderAll();
+}
+
+// ── WEIGHT UPDATE ──
+function updateWeight(){
+  const val = parseFloat(document.getElementById('weight-input').value);
+  if(isNaN(val) || val < 40 || val > 200){ showToast('Peso inválido ⚠️'); return; }
+  state.weight = val;
+  // save to history (one entry per day, overwrite if same day)
+  const existing = state.weightHistory.findIndex(e => e.date === today());
+  if(existing >= 0) state.weightHistory[existing].kg = val;
+  else state.weightHistory.push({date: today(), kg: val});
+  // keep last 60 entries
+  if(state.weightHistory.length > 60) state.weightHistory = state.weightHistory.slice(-60);
+  save(state);
+  renderAll();
+  showToast('Peso atualizado: '+val+'kg ✓');
+  document.getElementById('weight-input').value='';
+  checkRewardUnlocks(val);
+}
+
+function checkRewardUnlocks(w){
+  if(w<=75 && w>70) showToast('🏅 Marco desbloqueado: 75kg!');
+  if(w<=70 && w>66) showToast('🏅 Marco desbloqueado: 70kg!');
+  if(w<=66 && w>64) showToast('💆 Recompensa: Dia de Spa merecido!');
+  if(w<=64)         showToast('💍 META ALCANÇADA! Você conseguiu!');
+}
+
+// ── CHART ──
+function renderChart(){
+  const canvas = document.getElementById('weight-chart');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth || 340;
+  const H = 160;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.scale(dpr, dpr);
+
+  const history = state.weightHistory.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById('chart-points-count').textContent = history.length + ' registro' + (history.length !== 1 ? 's' : '');
+
+  const PAD = {top:16, right:16, bottom:32, left:38};
+  const cW = W - PAD.left - PAD.right;
+  const cH = H - PAD.top - PAD.bottom;
+
+  // clear
+  ctx.clearRect(0, 0, W, H);
+
+  if(history.length < 1){ 
+    ctx.fillStyle = 'rgba(253,246,227,0.2)';
+    ctx.font = '12px DM Sans, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Registre seu peso para ver o gráfico', W/2, H/2);
+    return;
+  }
+
+  const vals = history.map(e=>e.kg);
+  const minKg = Math.min(...vals, 64) - 1;
+  const maxKg = Math.max(...vals, 79) + 1;
+  const range = maxKg - minKg;
+
+  const xOf = i => PAD.left + (history.length < 2 ? cW/2 : (i/(history.length-1))*cW);
+  const yOf = kg => PAD.top + cH - ((kg - minKg)/range)*cH;
+
+  // goal line at 64kg
+  const goalY = yOf(64);
+  ctx.beginPath();
+  ctx.setLineDash([4,4]);
+  ctx.strokeStyle = 'rgba(82,183,136,0.4)';
+  ctx.lineWidth = 1;
+  ctx.moveTo(PAD.left, goalY);
+  ctx.lineTo(PAD.left+cW, goalY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(82,183,136,0.6)';
+  ctx.font = '9px DM Sans, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('64kg 🎯', PAD.left+2, goalY-3);
+
+  // gradient fill under line
+  if(history.length > 1){
+    const grad = ctx.createLinearGradient(0, PAD.top, 0, PAD.top+cH);
+    grad.addColorStop(0, 'rgba(201,168,76,0.25)');
+    grad.addColorStop(1, 'rgba(201,168,76,0)');
+    ctx.beginPath();
+    history.forEach((e,i)=>{ i===0 ? ctx.moveTo(xOf(i),yOf(e.kg)) : ctx.lineTo(xOf(i),yOf(e.kg)); });
+    ctx.lineTo(xOf(history.length-1), PAD.top+cH);
+    ctx.lineTo(xOf(0), PAD.top+cH);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+  }
+
+  // line
+  ctx.beginPath();
+  ctx.strokeStyle = '#E8C97A';
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  history.forEach((e,i)=>{ i===0 ? ctx.moveTo(xOf(i),yOf(e.kg)) : ctx.lineTo(xOf(i),yOf(e.kg)); });
+  ctx.stroke();
+
+  // dots + labels
+  history.forEach((e,i)=>{
+    const x=xOf(i), y=yOf(e.kg);
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI*2);
+    ctx.fillStyle='#E8C97A';
+    ctx.fill();
+    ctx.strokeStyle='#140F06';
+    ctx.lineWidth=1.5;
+    ctx.stroke();
+    // label on first, last, and every ~3rd
+    if(i===0 || i===history.length-1 || i%3===0){
+      ctx.fillStyle='rgba(253,246,227,0.85)';
+      ctx.font='bold 9px DM Sans, sans-serif';
+      ctx.textAlign='center';
+      ctx.fillText(e.kg+'kg', x, y-8);
+    }
+  });
+
+  // x-axis dates (first and last)
+  if(history.length >= 2){
+    const fmt = d => { const [,m,day]=d.split('-'); return day+'/'+m; };
+    ctx.fillStyle='rgba(253,246,227,0.35)';
+    ctx.font='9px DM Sans, sans-serif';
+    ctx.textAlign='left';
+    ctx.fillText(fmt(history[0].date), PAD.left, H-6);
+    ctx.textAlign='right';
+    ctx.fillText(fmt(history[history.length-1].date), PAD.left+cW, H-6);
+  }
+
+  // y-axis labels
+  [maxKg, minKg+Math.round(range/2), minKg].forEach(kg=>{
+    const y = yOf(kg);
+    ctx.fillStyle='rgba(253,246,227,0.3)';
+    ctx.font='9px DM Sans, sans-serif';
+    ctx.textAlign='right';
+    ctx.fillText(Math.round(kg)+'kg', PAD.left-4, y+3);
+  });
+}
+
+// ── REWARDS ──
+function renderRewards(){
+  const lost = 79 - state.weight;
+  const rewardMap = [
+    {id:'r-streak', cond: state.streakDays.length >= 3},
+    {id:'r-week',   cond: (()=>{ let s=0; const n=new Date(); for(let i=0;i<7;i++){ const d=new Date(n); d.setDate(d.getDate()-i); if(state.streakDays.includes(d.toISOString().slice(0,10))) s++; } return s>=7; })()},
+    {id:'r-4kg',    cond: lost >= 4},
+    {id:'r-half',   cond: lost >= 7.5},
+    {id:'r-10kg',   cond: lost >= 10},
+    {id:'r-13kg',   cond: lost >= 13},
+    {id:'r-final',  cond: lost >= 15},
+  ];
+  rewardMap.forEach(({id, cond})=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(cond){ el.classList.remove('locked'); el.classList.add('unlocked'); }
+    else     { el.classList.remove('unlocked'); el.classList.add('locked'); }
+  });
+}
+
+// ── FOOD LOG ──
+function renderFoodLog(){
+  const entries = state.foodLog[today()] || [];
+  const container = document.getElementById('food-log');
+  // keep example entries (first 2 children) + saved
+  const existing = container.querySelectorAll('.saved-entry');
+  existing.forEach(e=>e.remove());
+  entries.forEach(({name,time})=>{
+    const div = document.createElement('div');
+    div.className='log-entry saved-entry';
+    div.innerHTML=`<div><div class="log-entry-name">${name}</div><div class="log-entry-time">${time}</div></div><div class="log-entry-score score-good">✓ Salvo</div>`;
+    container.appendChild(div);
+  });
+}
+
+function addFood(){
+  const input = document.getElementById('food-input');
+  const val = input.value.trim();
+  if(!val) return;
+  const now = new Date();
+  const time = now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+  if(!state.foodLog[today()]) state.foodLog[today()]=[];
+  state.foodLog[today()].push({name:val, time});
+  state.xp += 50;
+  save(state);
+  input.value='';
+  renderFoodLog();
+  renderAll();
+  showToast('Registrado! +50 XP 📝');
+}
+
+// ── NAVIGATION ──
+function goTo(name, btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ── TOAST ──
+let tt;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ── BOOT ──
+setTimeout(()=>{
+  initMissions();
+  renderFoodLog();
+  renderAll();
+}, 150);
+</script>
+
+</body>
+</html>
